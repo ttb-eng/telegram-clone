@@ -1,0 +1,5 @@
+# 默认：仓库内存 LF，检出时按平台自动转换
+* text=auto
+
+# start_demo.bat 必须保持 CRLF —— LF 换行会让 cmd 把每行拆成命令执行，报一屏错
+*.bat text eol=crlf

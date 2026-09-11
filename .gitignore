@@ -1,0 +1,38 @@
+# Python 虚拟环境
+weizhi/
+.venv/
+env/
+venv/
+
+# Python 缓存
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# 数据库文件（本地开发用）
+*.db
+
+# 上传文件
+uploads/*
+
+# 环境变量（可能含密钥）
+.env
+
+# IDE
+.idea/
+.vscode/
+
+# pytest
+.pytest_cache/
+
+# Claude Code
+CLAUDE.md
+.claude/
+
+# 向量库数据（二进制 + sqlite，不入库）
+chroma_data/
+
+# 本地临时/打包产物
+rag_test_doc.txt
+telegram-clone.zip
+作品集.zip

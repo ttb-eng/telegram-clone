@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>RAG 文档问答系统 — RAGAS 量化评测报告</title>
+<style>
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; max-width: 800px; margin: 0 auto; padding: 40px; color: #333; line-height: 1.8; }
+  h1 { text-align: center; font-size: 22px; border-bottom: 2px solid #2563eb; padding-bottom: 12px; margin-bottom: 8px; }
+  .meta { text-align: center; color: #666; font-size: 13px; margin-bottom: 28px; }
+  h2 { font-size: 16px; color: #2563eb; margin-top: 28px; border-left: 3px solid #2563eb; padding-left: 10px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+  th { background: #2563eb; color: #fff; padding: 8px 12px; text-align: left; }
+  td { padding: 8px 12px; border-bottom: 1px solid #e5e7eb; }
+  tr:nth-child(even) { background: #f8fafc; }
+  code { background: #f1f5f9; padding: 2px 6px; border-radius: 3px; font-size: 13px; }
+  pre { background: #1e293b; color: #e2e8f0; padding: 14px 18px; border-radius: 6px; font-size: 13px; overflow-x: auto; }
+  .score-good { color: #16a34a; font-weight: bold; }
+  .score-mid { color: #d97706; font-weight: bold; }
+  .footer { text-align: center; color: #999; font-size: 12px; margin-top: 36px; border-top: 1px solid #e5e7eb; padding-top: 16px; }
+</style>
+</head>
+<body>
+
+<h1>RAG 文档问答系统 — RAGAS 量化评测报告</h1>
+<div class="meta">
+  项目：Telegram Clone — AI 智能助手 &nbsp;|&nbsp;
+  代码：github.com/ttb-eng/-telegram-clone &nbsp;|&nbsp;
+  线上：mytelegram.xyz/docs
+</div>
+
+<h2>一、项目概述</h2>
+<p>在 Telegram Clone 项目中实现了基于 RAG（检索增强生成）的文档问答功能。用户上传文档后，系统自动分块、向量化并存入 ChromaDB 向量数据库；提问时检索相关片段，交由 DeepSeek 大模型增强生成回答。为量化评估系统质量，基于 RAGAS 框架设计了 <strong>15 题跨文档评测方案</strong>，覆盖三项核心指标。</p>
+
+<h2>二、技术架构</h2>
+<pre>
+用户上传文档 → chunk_text (500 字符滑动窗口)
+              → SentenceTransformer (all-MiniLM-L6-v2, 384 维)
+              → ChromaDB (cosine 空间, 用户级隔离)
+              ↓
+用户提问     → Embedding → Cosine 检索 (top-5 + distance &lt; 0.8 过滤)
+              → 拼接上下文 → DeepSeek Chat → 增强生成回答
+</pre>
+
+<table>
+  <tr><th>组件</th><th>技术选型</th></tr>
+  <tr><td>向量数据库</td><td>ChromaDB (PersistentClient)</td></tr>
+  <tr><td>Embedding 模型</td><td>sentence-transformers / all-MiniLM-L6-v2 (384 维)</td></tr>
+  <tr><td>LLM</td><td>DeepSeek Chat API</td></tr>
+  <tr><td>评测框架</td><td>RAGAS</td></tr>
+  <tr><td>用户隔离</td><td>user_id 元数据过滤 + 闭包注入</td></tr>
+</table>
+
+<h2>三、评测方案</h2>
+<p><strong>评测文档（3 篇，跨域设计）</strong></p>
+<ul>
+  <li><code>python_decorator.txt</code> — Python 装饰器语法</li>
+  <li><code>redis_cache.txt</code> — Redis 缓存策略</li>
+  <li><code>search_engine.txt</code> — 搜索引擎原理</li>
+</ul>
+
+<table>
+  <tr><th>题型</th><th>示例</th><th>数量</th></tr>
+  <tr><td>单文档提取</td><td>"装饰器使用什么符号？"</td><td>6 题</td></tr>
+  <tr><td>跨文档对比</td><td>"倒排索引和装饰器都用到了什么共同概念？"</td><td>4 题</td></tr>
+  <tr><td>多文档整合</td><td>"三篇文档中分别提到了哪些排序相关内容？"</td><td>5 题</td></tr>
+</table>
+
+<p><strong>评测流程：</strong>存储 3 篇文档 → 逐题检索 top-5 → 构建 system prompt → DeepSeek 生成回答 → 收集 15 组 (question, answer, contexts, ground_truth) → RAGAS evaluate</p>
+
+<h2>四、评测结果</h2>
+<table>
+  <tr><th>指标</th><th>分数</th><th>说明</th></tr>
+  <tr><td>Faithfulness（忠实度）</td><td class="score-good">0.73</td><td>生成回答与检索内容的吻合程度</td></tr>
+  <tr><td>Answer Relevancy（回答相关性）</td><td class="score-good">0.77</td><td>回答与问题的语义相关性</td></tr>
+  <tr><td>Context Recall（上下文召回）</td><td class="score-good">0.79</td><td>检索到的内容覆盖标准答案的比例</td></tr>
+  <tr><td>Context Precision（上下文精度）</td><td class="score-mid">0.36</td><td>检索结果中相关内容的比例（已定位 chunking 优化方向）</td></tr>
+</table>
+<p style="font-size:13px; color:#888">评测环境：15 题 × 4 指标 = 60 个并行评估任务，评测 LLM 为 DeepSeek Chat，Embedding 为 all-MiniLM-L6-v2，完整可复现（<code>tests/test_rag_ragas.py</code>）。</p>
+
+<h2>五、优化方向</h2>
+<ul>
+  <li><strong>已完成：</strong>引入 distance 阈值过滤（cosine &lt; 0.8）；自研 <code>DeepSeekJsonWrapper</code> 解决 DeepSeek 返回 JSON 带 Markdown 围栏的兼容问题</li>
+  <li><strong>Chunking 策略：</strong>当前 chunk_size=500，过粗切片引入无关内容，计划调整为 200~300 并增大 overlap</li>
+  <li><strong>Re-rank：</strong>检索 top-5 后引入 cross-encoder 重排序，提升 context_precision</li>
+  <li><strong>混合检索：</strong>BM25 + 向量检索融合，提升中英文混合场景召全率</li>
+</ul>
+
+<h2>六、技术亮点</h2>
+<ul>
+  <li><strong>全异步架构：</strong>FastAPI + SQLAlchemy Async + httpx，检索和 LLM 调用均为异步</li>
+  <li><strong>用户级知识库隔离：</strong>ChromaDB metadata 按 user_id 过滤，<code>search_knowledge</code> 通过闭包注入 user_id</li>
+  <li><strong>评测可复现：</strong>15 组 eval cases 写死在测试文件，pytest 一键运行</li>
+  <li><strong>DeepSeek 兼容适配：</strong>基于 LangChain <code>BaseChatModel</code> 自定义封装，解决 JSON 输出带 Markdown 围栏的兼容问题</li>
+  <li><strong>30+ API 已上线：</strong>Nginx 反代部署至阿里云 ECS，Swagger 文档可在线调试</li>
+</ul>
+
+</body>
+</html>

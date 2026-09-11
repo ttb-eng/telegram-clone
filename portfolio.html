@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>作品集 - Telegram Clone 实时通讯平台</title>
+<style>
+  :root {
+    --primary: #2A8BEF;
+    --dark: #1a1a2e;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #334155;
+    --muted: #64748b;
+    --border: #e2e8f0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+  /* Cover */
+  .cover {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: #fff;
+    text-align: center;
+    padding: 100px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle at 30% 50%, rgba(42,139,239,0.15) 0%, transparent 50%),
+                radial-gradient(circle at 70% 30%, rgba(42,139,239,0.1) 0%, transparent 50%);
+    animation: none;
+  }
+  .cover h1 { font-size: 48px; font-weight: 800; margin-bottom: 12px; position: relative; z-index: 1; }
+  .cover .tagline { font-size: 20px; color: rgba(255,255,255,0.7); margin-bottom: 32px; position: relative; z-index: 1; }
+  .cover .links { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
+  .cover .links a {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 12px 28px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    transition: transform 0.2s;
+  }
+  .cover .links a:hover { transform: translateY(-2px); }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-outline { border: 2px solid rgba(255,255,255,0.4); color: #fff; }
+
+  /* Section */
+  section { padding: 48px 0; }
+  section:nth-child(even) { background: #fff; }
+  .section-title {
+    font-size: 26px; font-weight: 700; color: var(--dark);
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 3px solid var(--primary);
+    display: inline-block;
+  }
+  .section-desc { color: var(--muted); margin-bottom: 28px; font-size: 16px; max-width: 680px; }
+
+  /* Tech stack badges */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 12px;
+  }
+  .tech-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--dark);
+    transition: box-shadow 0.2s;
+  }
+  .tech-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .tech-item .role { display: block; font-weight: 400; font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* Feature cards */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+  }
+  .feature-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    transition: box-shadow 0.2s;
+  }
+  .feature-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
+  .feature-card h3 { font-size: 17px; margin-bottom: 8px; color: var(--dark); }
+  .feature-card p { font-size: 14px; color: var(--muted); }
+
+  /* Code blocks */
+  .code-block {
+    background: #1e293b;
+    color: #e2e8f0;
+    border-radius: 10px;
+    padding: 20px 24px;
+    font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-x: auto;
+    white-space: pre;
+    margin: 12px 0;
+  }
+
+  /* Flow diagram */
+  .flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 24px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .flow-box {
+    background: var(--card);
+    border: 2px solid var(--primary);
+    border-radius: 8px;
+    padding: 10px 16px;
+    text-align: center;
+    color: var(--dark);
+  }
+  .flow-arrow { color: var(--primary); font-size: 20px; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  th, td {
+    padding: 10px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th { background: var(--dark); color: #fff; font-weight: 600; }
+  tr:hover td { background: #f1f5f9; }
+
+  /* Two-column */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* Footer */
+  footer {
+    background: var(--dark);
+    color: rgba(255,255,255,0.6);
+    text-align: center;
+    padding: 32px 24px;
+    font-size: 14px;
+  }
+  footer a { color: var(--primary); text-decoration: none; }
+
+  /* Print */
+  @media print {
+    body { font-size: 12px; line-height: 1.5; }
+    .cover { padding: 60px 24px; }
+    section { padding: 24px 0; page-break-inside: avoid; }
+    .feature-grid { grid-template-columns: 1fr 1fr; }
+    .code-block { font-size: 10px; }
+    .section-title { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== COVER ========== -->
+<div class="cover">
+  <h1>Telegram Clone</h1>
+  <p style="font-size:14px;color:rgba(255,255,255,0.5);margin-bottom:8px;position:relative;z-index:1;">张天睿 &middot; 智能科学与技术 &middot; 2027届 &middot; 求职意向：游戏运维开发</p>
+  <p class="tagline">仿 Telegram 实时通讯平台 &mdash; FastAPI + WebSocket + AI Bot</p>
+  <div class="links">
+    <a class="btn-primary" href="https://mytelegram.xyz/docs" target="_blank">在线演示 (Swagger UI)</a>
+    <a class="btn-outline" href="https://github.com/ttb-eng/-telegram-clone" target="_blank">GitHub 源码</a>
+  </div>
+</div>
+
+<!-- ========== 项目概述 ========== -->
+<section>
+  <div class="container">
+    <h2 class="section-title">项目概述</h2>
+    <p class="section-desc">
+      一款功能完整的仿 Telegram 实时通讯后端系统。基于 FastAPI 全异步架构，支持 WebSocket 实时私聊/群聊消息推送，
+      内置 DeepSeek AI Bot，支持多轮连续对话、Tool Calling（函数调用）和 RAG 文档问答。
+      项目已部署上线，运行在阿里云 ECS（Ubuntu + Nginx + systemd），线上可直接体验。
+    </p>
+    <div class="two-col">
+      <div>
+        <strong>角色</strong>
+        <p style="color:var(--muted);margin-bottom:12px;">全栈后端开发（独立完成）</p>
+        <strong>项目周期</strong>
+        <p style="color:var(--muted);margin-bottom:12px;">约 2 个月（迭代开发）</p>
+      </div>
+      <div>
+        <strong>代码规模</strong>
+        <p style="color:var(--muted);margin-bottom:12px;">约 4000 行 Python（含测试）</p>
+        <strong>线上地址</strong>
+        <p style="color:var(--muted);margin-bottom:12px;"><a href="https://mytelegram.xyz/docs">mytelegram.xyz/docs</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 技术栈 ========== -->
+<section>
+  <div class="container">
+    <h2 class="section-title">技术栈</h2>
+    <div class="tech-grid">
+      <div class="tech-item">FastAPI<span class="role">Web 框架</span></div>
+      <div class="tech-item">SQLAlchemy (Async)<span class="role">ORM + asyncpg</span></div>
+      <div class="tech-item">PostgreSQL<span class="role">生产数据库</span></div>
+      <div class="tech-item">Redis<span class="role">缓存 + 在线状态</span></div>
+      <div class="tech-item">WebSocket<span class="role">实时消息推送</span></div>
+      <div class="tech-item">JWT + bcrypt<span class="role">认证 &amp; 安全</span></div>
+      <div class="tech-item">DeepSeek API<span class="role">AI 对话引擎</span></div>
+      <div class="tech-item">ChromaDB<span class="role">向量数据库</span></div>
+      <div class="tech-item">sentence-transformers<span class="role">文本向量化</span></div>
+      <div class="tech-item">LangChain/LangGraph<span class="role">Agent 编排</span></div>
+      <div class="tech-item">Nginx<span class="role">反向代理</span></div>
+      <div class="tech-item">Docker<span class="role">容器化部署</span></div>
+      <div class="tech-item">systemd<span class="role">进程守护</span></div>
+      <div class="tech-item">pytest<span class="role">自动化测试</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 系统架构 ========== -->
+<section>
+  <div class="container">
+    <h2 class="section-title">系统架构</h2>
+    <p class="section-desc">分层架构：路由层 → 业务层 → 数据层，职责清晰，可测试性强。</p>
+    <div class="code-block">
+&#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;
+&#x2502;                     Nginx (80)                                &#x2502;
+&#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;
+                     &#x2502;
+          &#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2534;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;
+          &#x2502;  FastAPI (uvicorn)  &#x2502;
+          &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;
+     &#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x253C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;
+     &#x2502;           &#x2502;          &#x2502;
+&#x25C6;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;  &#x25C6;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;  &#x25C6;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;
+PostgreSQL  Redis    DeepSeek API
+(sync+async) (缓存/状态) (AI Bot)
+    </div>
+  </div>
+</section>
+
+<!-- ========== 核心功能 ========== -->
+<section>
+  <div class="container">
+    <h2 class="section-title">核心功能</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h3>用户认证</h3>
+        <p>手机号注册/登录，JWT Token 鉴权，bcrypt 密码哈希，Bearer Token 中间件拦截验证</p>
+      </div>
+      <div class="feature-card">
+        <h3>好友系统</h3>
+        <p>好友请求发送→接受/拒绝→双向关系建立，支持搜索用户、删除好友</p>
+      </div>
+      <div class="feature-card">
+        <h3>私聊消息</h3>
+        <p>WebSocket 实时收发，支持文本消息、已读标记、消息撤回（2分钟内）、消息搜索</p>
+      </div>
+      <div class="feature-card">
+        <h3>群聊系统</h3>
+        <p>创建群组、成员管理（添加/移除/角色权限）、群消息多播广播、群消息历史分页</p>
+      </div>
+      <div class="feature-card">
+        <h3>AI Bot</h3>
+        <p>内置 AI Bot 用户，发消息即可对话。支持 20 条上下文记忆，可调用工具查天气/时间/搜索</p>
+      </div>
+      <div class="feature-card">
+        <h3>RAG 文档问答</h3>
+        <p>上传 TXT/PDF → 分块 → sentence-transformers 向量化 → ChromaDB → 检索增强生成回答</p>
+      </div>
+      <div class="feature-card">
+        <h3>在线状态</h3>
+        <p>Redis TTL 300s 管理在线状态，WebSocket 心跳 120s 续期，支持查询任意用户在线状态</p>
+      </div>
+      <div class="feature-card">
+        <h3>离线消息</h3>
+        <p>接收方不在线时消息存入 Redis 列表，上线后通过 HTTP API 拉取并清空</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== API 接口 ========== -->
+<section>
+  <div class="container">
+    <h2 class="section-title">API 接口覆盖</h2>
+    <table>
+      <thead>
+        <tr><th>模块</th><th>接口数</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>认证 (auth)</td><td>2</td><td>注册、登录</td></tr>
+        <tr><td>用户 (users)</td><td>4</td><td>个人信息 CRUD、搜索用户</td></tr>
+        <tr><td>好友 (friends)</td><td>5</td><td>请求发送/接受/拒绝、列表、删除</td></tr>
+        <tr><td>消息 (messages)</td><td>5</td><td>发送、历史分页、已读、撤回、搜索</td></tr>
+        <tr><td>会话 (conversations)</td><td>1</td><td>私聊+群聊会话列表聚合</td></tr>
+        <tr><td>群组 (groups)</td><td>8</td><td>CRUD + 成员管理 + 权限控制</td></tr>
+        <tr><td>文件 (upload)</td><td>1</td><td>文件上传（类型/大小校验）</td></tr>
+        <tr><td>AI (ai)</td><td>4</td><td>文档上传/列表/删除、RAG 问答</td></tr>
+        <tr><td>实时 (ws)</td><td>1</td><td>WebSocket 全双工通信</td></tr>
+        <tr><td>其他</td><td>3</td><td>离线消息拉取、在线状态查询、健康检查</td></tr>
+        <tr style="font-weight:700; background:#e8f4fd;"><td>合计</td><td>34</td><td>REST + WebSocket</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ========== AI 亮点 ========== -->
+<section>
+  <div class="container">
+    <h2 class="section-title">AI 技术亮点：Tool Calling 流程</h2>
+    <p class="section-desc">AI Bot 不仅能聊天，还能根据用户意图自动调用外部工具，获取实时数据后再生成回答。</p>
+    <div class="code-block">
+用户: "北京今天天气怎么样？"
+  &#x2192; AI 分析意图 &#x2192; 判断需要调用 get_weather 工具
+    &#x2192; 自动调用 get_weather(city="北京") &#x2192; 获取天气数据
+      &#x2192; 将天气数据拼入上下文 &#x2192; AI 生成自然语言回答
+        &#x2192; "北京今天晴，气温 22-30°C，适合出行。"
+
+已实现工具: get_time(世界时间) / get_weather(天气) / web_search(Tavily联网) / search_knowledge(文档检索)
+    </div>
+  </div>
+</section>
+
+<!-- ========== AI 亮点：Agent ========== -->
+<section>
+  <div class="container">
+    <h2 class="section-title">AI 技术亮点：LangChain/LangGraph Agent 编排</h2>
+    <p class="section-desc">
+      基于 LangGraph 实现可配置的 AI Agent，支持工具调用链编排，可通过配置切换手写版 Agent 与 LangChain 版 Agent。
+    </p>
+    <div class="two-col">
+      <div>
+        <h3 style="margin-bottom:10px;">Agent 架构</h3>
+        <ul style="padding-left:20px;color:var(--muted);font-size:14px;">
+          <li>LangGraph StateGraph 管理对话状态流转</li>
+          <li>4 个 Tool 节点：get_time / get_weather / web_search / search_knowledge</li>
+          <li>DeepSeekJsonWrapper 剥离 JSON 围栏，适配 DeepSeek API</li>
+          <li>条件边路由：根据 LLM 决策调度工具调用或生成最终回复</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="margin-bottom:10px;">配置切换</h3>
+        <ul style="padding-left:20px;color:var(--muted);font-size:14px;">
+          <li>环境变量 <code>AI_BACKEND</code> 控制：<code>native</code> / <code>langchain</code></li>
+          <li>手写版：轻量级 Function Calling，无框架依赖</li>
+          <li>LangChain 版：完整的 Agent 编排，可扩展工具和记忆</li>
+          <li>两套实现共享相同的 Tool 定义和 LLM 调用接口</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <h2 class="section-title">AI 技术亮点：RAG 文档问答管道</h2>
+    <div class="flow">
+      <div class="flow-box">用户上传<br>PDF / TXT</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">文档分块<br>500字/50重叠</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">sentence-transformers<br>向量化 (384维)</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">ChromaDB<br>向量存储</div>
+    </div>
+    <div class="flow">
+      <div class="flow-box">用户提问</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">向量检索<br>余弦相似度 top5</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">拼接上下文<br>+ 原始问题</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">DeepSeek<br>生成回答</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== AI 亮点：RAGAS ========== -->
+<section>
+  <div class="container">
+    <h2 class="section-title">AI 技术亮点：RAGAS 评测体系</h2>
+    <p class="section-desc">
+      使用 RAGAS 框架对 RAG 文档问答进行系统性质量评测，四项指标零报错，验证了检索和生成流程的可靠性。
+    </p>
+    <table>
+      <thead>
+        <tr><th>指标</th><th>分数</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>faithfulness（忠实度）</td><td><strong>0.73</strong></td><td>回答是否忠于检索到的上下文，有无编造</td></tr>
+        <tr><td>answer_relevancy（答案相关性）</td><td><strong>0.77</strong></td><td>回答与问题的相关程度</td></tr>
+        <tr><td>context_recall（上下文召回率）</td><td><strong>0.79</strong></td><td>检索到的上下文覆盖参考答案的程度</td></tr>
+        <tr><td>context_precision（上下文精确度）</td><td><strong>0.36</strong></td><td>检索结果中相关文档的排名质量</td></tr>
+      </tbody>
+    </table>
+    <p style="color:var(--muted);font-size:13px;margin-top:8px;">
+      * 评测过程中解决了 HuggingFace 直连超时（自研 ceshi_Wrapper 走 hf-mirror.com）和 DeepSeek JSON 围栏解析等技术难点。
+    </p>
+  </div>
+</section>
+
+<!-- ========== WebSocket ========== -->
+<section>
+  <div class="container">
+    <h2 class="section-title">技术亮点：WebSocket 实时通信</h2>
+    <p class="section-desc">
+      基于 FastAPI 原生 WebSocket 实现的实时消息系统，一个用户支持多设备同时在线。
+    </p>
+    <div class="two-col">
+      <div>
+        <h3 style="margin-bottom:10px;">连接管理</h3>
+        <ul style="padding-left:20px;color:var(--muted);font-size:14px;">
+          <li>defaultdict[user_id, list[WebSocket]] 支持多设备</li>
+          <li>连接时 JWT 鉴权，拒绝无效 Token</li>
+          <li>断开时自动清理 + Redis 下线</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="margin-bottom:10px;">消息路由</h3>
+        <ul style="padding-left:20px;color:var(--muted);font-size:14px;">
+          <li>私聊: 查在线状态 &rarr; 在线直接推送 / 离线存 Redis</li>
+          <li>群聊: 查在线集合 &cap; 群成员 &rarr; 多播所有在线成员</li>
+          <li>AI Bot: receiver 为 ai_bot 时触发 DeepSeek 流式回复</li>
+        </ul>
+      </div>
+    </div>
+    <div class="code-block" style="margin-top:16px;">
+WebSocket 消息类型:
+  message     &#x2192; 发送私聊消息     new_message  &#x2192; 接收新消息
+  group_message &#x2192; 发送群消息     group_broadcast &#x2192; 群消息广播
+  typing      &#x2192; 输入状态          online_status &#x2192; 在线状态变更
+  ping/pong   &#x2192; 心跳保活 (120s)  read         &#x2192; 已读回执
+    </div>
+  </div>
+</section>
+
+<!-- ========== WebSocket 压测 ========== -->
+<section>
+  <div class="container">
+    <h2 class="section-title">技术亮点：WebSocket 性能压测</h2>
+    <p class="section-desc">
+      使用 Python websockets 库编写压测脚本，模拟真实用户并发连接与消息收发，验证系统在高并发下的稳定性。
+    </p>
+    <table>
+      <thead>
+        <tr><th>指标</th><th>结果</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>并发连接数</td><td><strong>1000</strong></td></tr>
+        <tr><td>成功率</td><td><strong>100%</strong></td></tr>
+        <tr><td>连接速率</td><td><strong>183 conn/s</strong></td></tr>
+        <tr><td>测试工具</td><td>自研 Python 压测脚本（tests/ws_bench.py）</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ========== 数据库设计 ========== -->
+<section>
+  <div class="container">
+    <h2 class="section-title">数据库设计</h2>
+    <table>
+      <thead>
+        <tr><th>表名</th><th>核心字段</th><th>关系</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>users</td><td>id(UUID), phone, username, display_name, hashed_password, last_seen</td><td>-</td></tr>
+        <tr><td>friends</td><td>user_id, friend_id, status(pending/accepted/rejected)</td><td>FK &rarr; users</td></tr>
+        <tr><td>messages</td><td>id(UUID), sender_id, receiver_id, content, msg_type, is_read, is_revoked, created_at</td><td>FK &rarr; users</td></tr>
+        <tr><td>groups</td><td>id(UUID), name, description, owner_id, created_at</td><td>FK &rarr; users</td></tr>
+        <tr><td>group_members</td><td>group_id, user_id, role(owner/admin/member), joined_at</td><td>FK &rarr; groups, users</td></tr>
+        <tr><td>group_messages</td><td>id(UUID), group_id, sender_id, content, msg_type, is_revoked, created_at</td><td>FK &rarr; groups, users</td></tr>
+        <tr><td>documents</td><td>id(UUID), user_id, filename, file_type, chunk_count, uploaded_at</td><td>FK &rarr; users</td></tr>
+      </tbody>
+    </table>
+    <p style="color:var(--muted);font-size:13px;margin-top:8px;">
+      * 所有 ID 使用 UUID 类型，时间字段使用 UTC，密码使用 bcrypt 哈希存储
+    </p>
+  </div>
+</section>
+
+<!-- ========== 部署架构 ========== -->
+<section>
+  <div class="container">
+    <h2 class="section-title">部署架构</h2>
+    <div class="code-block">
+&#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;
+&#x2502;                    阿里云 ECS (Ubuntu 24.04)                     &#x2502;
+&#x2502;                                                               &#x2502;
+&#x2502;  &#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;     &#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;     &#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;              &#x2502;
+&#x2502;  &#x2502;   Nginx (80) &#x2502;&#x2500;&#x2500;&#x2500;&#x2192;&#x2502; FastAPI     &#x2502;&#x2500;&#x2500;&#x2500;&#x2192;&#x2502; PostgreSQL  &#x2502;              &#x2502;
+&#x2502;  &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;     &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;     &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;              &#x2502;
+&#x2502;       &#x2502;              &#x2502;                                          &#x2502;
+&#x2502;       &#x2193;              &#x2193;                                          &#x2502;
+&#x2502;  systemd 守护        Redis (缓存+状态)                              &#x2502;
+&#x2502;  崩溃自动重启       Docker Compose 管理                              &#x2502;
+&#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;
+    </div>
+  </div>
+</section>
+
+<!-- ========== 部署细节 ========== -->
+<section>
+  <div class="container">
+    <h2 class="section-title">部署细节：容器化 + 进程管理</h2>
+    <div class="two-col">
+      <div>
+        <h3 style="margin-bottom:10px;">Docker Compose 服务拓扑</h3>
+        <ul style="padding-left:20px;color:var(--muted);font-size:14px;">
+          <li><strong>app</strong> — FastAPI + uvicorn，映射 8000 端口</li>
+          <li><strong>db</strong> — PostgreSQL 16，持久化 volume</li>
+          <li><strong>redis</strong> — Redis 7，缓存 + WebSocket 在线状态</li>
+          <li>服务间通过 Docker network 内部通信</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="margin-bottom:10px;">systemd 进程守护</h3>
+        <ul style="padding-left:20px;color:var(--muted);font-size:14px;">
+          <li><code>telegram-clone.service</code> 管理 uvicorn 进程</li>
+          <li><code>Restart=always</code> 崩溃自动重启</li>
+          <li><code>RestartSec=5</code> 重启间隔 5 秒</li>
+          <li>日志集成 journald，可通过 <code>journalctl -u telegram-clone</code> 查看</li>
+        </ul>
+      </div>
+    </div>
+    <div style="margin-top:20px;">
+      <h3 style="margin-bottom:10px;">Nginx 反向代理</h3>
+      <ul style="padding-left:20px;color:var(--muted);font-size:14px;">
+        <li>静态文件直接 serve（uploads/、portfolio.html）</li>
+        <li>/api/* 和 /ws/* 反向代理到 uvicorn</li>
+        <li>WebSocket 升级：<code>proxy_set_header Upgrade $http_upgrade</code></li>
+        <li>SSL 证书 via Let's Encrypt / Certbot</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 测试 ========== -->
+<section>
+  <div class="container">
+    <h2 class="section-title">测试策略</h2>
+    <div class="two-col">
+      <div>
+        <h3 style="margin-bottom:10px;">单元测试 / 集成测试</h3>
+        <ul style="padding-left:20px;color:var(--muted);font-size:14px;">
+          <li>独立 SQLite test.db，与开发环境隔离</li>
+          <li>httpx.ASGITransport 不启动真实服务器</li>
+          <li>依赖注入覆盖 (dependency_overrides)</li>
+          <li>每个测试前后自动建表/删表</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="margin-bottom:10px;">覆盖模块</h3>
+        <ul style="padding-left:20px;color:var(--muted);font-size:14px;">
+          <li>用户认证：注册/登录/JWT验证</li>
+          <li>好友系统：请求流程完整链路</li>
+          <li>消息系统：发送/历史/撤回</li>
+          <li>RAG 评估：RAGAS 框架评估检索质量</li>
+          <li>WebSocket 压测：websockets 并发性能</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 技术决策 ========== -->
+<section>
+  <div class="container">
+    <h2 class="section-title">技术决策 &amp; 思考</h2>
+    <table>
+      <thead>
+        <tr><th>决策点</th><th>选择</th><th>理由</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Web 框架</td><td>FastAPI (而非 Django/Flask)</td><td>原生 async/await、自动 OpenAPI 文档、WebSocket 一等公民</td></tr>
+        <tr><td>数据库驱动</td><td>asyncpg (而非 psycopg2)</td><td>全异步链路避免阻塞事件循环，配合 SQLAlchemy Async</td></tr>
+        <tr><td>密码哈希</td><td>bcrypt (而非 passlib)</td><td>passlib 已停止维护，直接使用 bcrypt 库更简单可靠</td></tr>
+        <tr><td>向量数据库</td><td>ChromaDB (而非 Pinecone/Milvus)</td><td>轻量、无需额外服务、适合小规模 RAG 场景</td></tr>
+        <tr><td>数据库迁移</td><td>手动 ALTER TABLE (而非 Alembic)</td><td>项目规模小，手动变更足够灵活，避免迁移文件管理开销</td></tr>
+        <tr><td>进度管理</td><td>systemd (而非 Supervisor/Docker)</td><td>Linux 原生、开机自启+崩溃重启、日志集成 journald</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ========== 个人收获 ========== -->
+<section>
+  <div class="container">
+    <h2 class="section-title">个人收获与成长</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h3>异步编程深入理解</h3>
+        <p>从同步思维切换到 async/await 范式，理解了事件循环、协程调度、连接池管理，以及为什么全链路异步才有意义</p>
+      </div>
+      <div class="feature-card">
+        <h3>WebSocket 协议实战</h3>
+        <p>掌握了 WebSocket 握手机制、心跳保活、断线重连、多设备连接管理、群消息广播路由等生产级实时通信要点</p>
+      </div>
+      <div class="feature-card">
+        <h3>AI 应用开发全流程</h3>
+        <p>从 API 调用到 Function Calling，再到 RAG 检索增强生成，完整理解了 LLM 应用从 prompt 到 production 的链路</p>
+      </div>
+      <div class="feature-card">
+        <h3>运维部署能力</h3>
+        <p>云服务器初始化、Nginx 反向代理配置、systemd 进程管理、HTTPS 证书，从本地开发到线上可用的完整交付</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>张天睿 &mdash; 智能科学与技术 &middot; 2027届</p>
+  <p style="margin-top:8px;">
+    <a href="https://mytelegram.xyz/docs">在线演示</a> &nbsp;&middot;&nbsp;
+    <a href="https://github.com/ttb-eng/-telegram-clone">GitHub</a>
+  </p>
+  <p style="margin-top:16px;">求职意向：游戏运维开发 &nbsp;&middot;&nbsp; Built with FastAPI + PostgreSQL + Redis + WebSocket + DeepSeek AI</p>
+</footer>
+
+</body>
+</html>

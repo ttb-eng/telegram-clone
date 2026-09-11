@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telegram Clone 演示</title>
+<style>
+  :root{
+    --amber:#F5B301; --amber-light:#FFD95A; --bg:#F5F6F7;
+    --ink:#1F2329; --muted:#8A9099; --line:#E7EAEE; --side:#F7F8FA;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
+    background:var(--bg); color:var(--ink); overflow:hidden;
+  }
+  .view{display:none; height:100%;}
+  .view.on{display:flex;}
+
+  /* ===================== 登录页（桌面双栏：左品牌面板 + 右表单） ===================== */
+  #login-view{flex-direction:row;}
+
+  .login-hero{
+    flex:1 1 52%; min-width:0; padding:0 64px;
+    display:flex; flex-direction:column; justify-content:center;
+    background:linear-gradient(150deg,#FFEDB8 0%,#FFD95A 45%,#F0AC00 100%);
+    color:#3D2E00; position:relative; overflow:hidden;
+  }
+  .login-hero::after{
+    content:""; position:absolute; width:560px; height:560px; border-radius:50%;
+    right:-190px; bottom:-220px; background:rgba(255,255,255,.20);
+  }
+  .hero-top{display:flex; align-items:center; gap:13px; margin-bottom:44px;}
+  .hero-logo{
+    width:46px; height:46px; flex:0 0 46px; border-radius:14px; background:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:23px;
+    box-shadow:0 6px 16px rgba(0,0,0,.10);
+  }
+  .hero-brand{font-size:19px; font-weight:700; letter-spacing:.3px;}
+  .hero-title{font-size:38px; font-weight:700; line-height:1.22; margin-bottom:14px;}
+  .hero-sub{font-size:14px; opacity:.70; letter-spacing:.5px; margin-bottom:42px;}
+  .hero-list{list-style:none; display:flex; flex-direction:column; gap:17px;}
+  .hero-list li{display:flex; align-items:center; gap:13px; font-size:14.5px; font-weight:500;}
+  .hero-list li i{
+    width:34px; height:34px; flex:0 0 34px; border-radius:10px; font-style:normal;
+    background:rgba(255,255,255,.58); display:flex; align-items:center; justify-content:center; font-size:16px;
+  }
+
+  .login-pane{
+    flex:1 1 48%; background:#fff; padding:40px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .login-form{width:100%; max-width:382px;}
+  .form-title{font-size:26px; font-weight:600; margin-bottom:9px;}
+  .form-sub{font-size:13.5px; color:var(--muted); margin-bottom:32px;}
+  .field{margin-bottom:17px;}
+  .field label{display:block; font-size:12.5px; color:var(--muted); margin-bottom:8px;}
+  .field input{
+    width:100%; height:48px; padding:0 15px; font-size:15px;
+    border:1px solid var(--line); border-radius:12px; background:#FAFBFC;
+    outline:none; transition:.18s;
+  }
+  .field input:focus{border-color:var(--amber); background:#fff; box-shadow:0 0 0 3px rgba(245,179,1,.13);}
+  .btn{
+    width:100%; height:50px; border:none; border-radius:12px; cursor:pointer;
+    font-size:16px; font-weight:600; color:#fff; background:var(--amber);
+    margin-top:12px; transition:.18s;
+  }
+  .btn:hover{filter:brightness(.95);}
+  .btn:disabled{opacity:.5; cursor:not-allowed;}
+  .switch{text-align:center; font-size:13px; color:var(--muted); margin-top:22px;}
+  .switch a{color:var(--amber); cursor:pointer; text-decoration:none; font-weight:600;}
+  .demo-tip{
+    margin-top:28px; padding:13px 15px; border-radius:11px;
+    background:#FFFBEF; border:1px dashed #F3D98A; color:#8A6D1F; font-size:12.5px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .demo-tip code{background:#fff; padding:2px 6px; border-radius:5px; font-size:12px;}
+  .demo-tip a{color:#C98A00; font-weight:700; cursor:pointer; white-space:nowrap;}
+
+  /* ===================== 主界面：左栏 + 右聊天区 ===================== */
+  #chat-view{flex-direction:row;}
+
+  .sidebar{
+    width:272px; flex:0 0 272px; background:var(--side);
+    border-right:1px solid var(--line); display:flex; flex-direction:column;
+  }
+  .side-head{display:flex; align-items:center; gap:11px; padding:18px 18px 14px;}
+  .side-logo{
+    width:38px; height:38px; flex:0 0 38px; border-radius:12px;
+    background:linear-gradient(135deg,var(--amber-light),var(--amber));
+    display:flex; align-items:center; justify-content:center; font-size:19px;
+  }
+  .side-title{font-size:15px; font-weight:600;}
+  .side-sub{font-size:11px; color:var(--muted); margin-top:2px;}
+
+  .side-search{padding:0 14px 12px; position:relative;}
+  .side-search input{
+    width:100%; height:38px; padding:0 13px; font-size:13px;
+    border:1px solid var(--line); border-radius:11px; background:#fff; outline:none;
+  }
+  .side-search input:focus{border-color:var(--amber);}
+  .search-results{
+    position:absolute; left:14px; right:14px; top:46px; z-index:5;
+    background:#fff; border:1px solid var(--line); border-radius:12px;
+    box-shadow:0 10px 26px rgba(31,35,41,.14); overflow:hidden; display:none;
+    max-height:260px; overflow-y:auto;
+  }
+  .search-results.on{display:block;}
+  .sr-item{display:flex; align-items:center; gap:10px; padding:10px 12px; cursor:pointer; font-size:13.5px;}
+  .sr-item:hover{background:#F4F6F9;}
+
+  .side-label{
+    font-size:11px; color:var(--muted); font-weight:600; letter-spacing:.5px;
+    padding:6px 20px 8px;
+  }
+  .side-friends{padding:0 0 6px;}
+  .conv-list{flex:1; overflow-y:auto; padding-bottom:8px;}
+  .conv{
+    display:flex; align-items:center; gap:11px; padding:10px 12px; margin:0 8px;
+    border-radius:13px; cursor:pointer; transition:.15s;
+  }
+  .conv:hover{background:#EDF0F4;}
+  .conv.active{background:#fff; box-shadow:0 1px 5px rgba(31,35,41,.07);}
+  .conv .avatar{width:38px; height:38px; flex:0 0 38px; font-size:17px;}
+  .conv-txt{flex:1; min-width:0;}
+  .conv-name{font-size:14px; font-weight:600;}
+  .conv-last{
+    font-size:12px; color:var(--muted); margin-top:3px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .badge{
+    min-width:19px; height:19px; padding:0 5px; flex:0 0 auto; border-radius:10px;
+    background:#E5484D; color:#fff; font-size:11px; font-weight:600;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .avatar.friends{background:linear-gradient(135deg,#B7E1C9,#4FB477);}
+
+  /* 好友面板 */
+  .f-title{font-size:12.5px; color:var(--muted); font-weight:600; margin:4px 0 11px;}
+  .f-row{
+    display:flex; align-items:center; gap:11px; padding:11px 14px; margin-bottom:9px;
+    background:#fff; border:1px solid var(--line); border-radius:13px;
+  }
+  .f-row .avatar{width:36px; height:36px; flex:0 0 36px; font-size:16px;}
+  .f-txt{flex:1; min-width:0;}
+  .f-name{font-size:14px; font-weight:600;}
+  .f-sub{font-size:11.5px; color:var(--muted); margin-top:2px;}
+  .f-btn{
+    flex:0 0 auto; border:none; border-radius:9px; padding:7px 14px;
+    font-size:12.5px; font-weight:600; cursor:pointer; transition:.15s;
+  }
+  .f-btn.ok{background:var(--amber); color:#fff;}
+  .f-btn.no{background:#F2F4F7; color:var(--muted);}
+  .f-btn:hover{filter:brightness(.95);}
+  .f-btn:disabled{opacity:.5; cursor:not-allowed;}
+  .sr-add{
+    flex:0 0 auto; border:none; border-radius:8px; padding:5px 10px;
+    font-size:11.5px; font-weight:600; cursor:pointer; background:var(--amber); color:#fff;
+  }
+  .sr-add.done{background:#EFF1F4; color:var(--muted); cursor:default;}
+  .side-foot{
+    margin-top:auto; display:flex; align-items:center; gap:11px;
+    padding:13px 16px; border-top:1px solid var(--line);
+  }
+  .side-foot button{
+    width:32px; height:32px; flex:0 0 32px; border:none; border-radius:9px;
+    background:transparent; cursor:pointer; font-size:15px; color:var(--muted);
+  }
+  .side-foot button:hover{background:#E8EBEF; color:#E5484D;}
+
+  .chat{flex:1; display:flex; flex-direction:column; min-width:0; background:#fff;}
+  .chat-head{
+    display:flex; align-items:center; gap:12px; padding:15px 26px;
+    border-bottom:1px solid var(--line); background:#fff;
+  }
+  .avatar{
+    width:40px; height:40px; border-radius:50%; flex:0 0 40px;
+    background:linear-gradient(135deg,var(--amber-light),var(--amber));
+    display:flex; align-items:center; justify-content:center; font-size:19px;
+  }
+  .avatar.grp{background:linear-gradient(135deg,#9FD8FF,#5AA9E6);}
+  .head-txt{flex:1; min-width:0;}
+  .head-name{font-size:15.5px; font-weight:600;}
+  .head-status{font-size:11.5px; color:var(--muted); display:flex; align-items:center; gap:5px; margin-top:3px;}
+  .dot{width:7px; height:7px; border-radius:50%; background:#C9CDD4;}
+  .dot.on{background:#3ECF6E;}
+
+  .tabs{display:flex; gap:3px; background:#F2F4F7; border-radius:11px; padding:3px;}
+  .tab{
+    padding:7px 15px; font-size:12.5px; border-radius:8px; cursor:pointer;
+    color:var(--muted); white-space:nowrap; transition:.15s; font-weight:500;
+  }
+  .tab.on{background:#fff; color:var(--ink); font-weight:600; box-shadow:0 1px 4px rgba(31,35,41,.08);}
+
+  .msgs{flex:1; overflow-y:auto; padding:26px 34px; background:var(--bg);}
+  .row{display:flex; gap:11px; margin-bottom:20px; align-items:flex-start;}
+  .row.me{flex-direction:row-reverse;}
+  .row .avatar{width:34px; height:34px; flex:0 0 34px; font-size:16px;}
+  .bubble-wrap{max-width:min(62%,660px); display:flex; flex-direction:column;}
+  .row.me .bubble-wrap{align-items:flex-end;}
+  .who{font-size:11.5px; color:var(--muted); margin:0 4px 5px;}
+  .bubble{
+    padding:11px 16px; border-radius:16px; font-size:14.5px; line-height:1.62;
+    background:#fff; border:1px solid var(--line); white-space:pre-wrap; word-break:break-word;
+    box-shadow:0 1px 2px rgba(31,35,41,.03);
+  }
+  .row.me .bubble{background:var(--amber-light); border-color:var(--amber-light);}
+  .time{font-size:11px; color:var(--muted); margin-top:6px; padding:0 4px;}
+  .sys{text-align:center; font-size:12px; color:var(--muted); margin-bottom:20px;}
+  .srcs{margin-top:9px; border-top:1px dashed var(--line); padding-top:9px; width:100%;}
+  .src{font-size:12px; color:var(--muted); line-height:1.65;}
+  .src b{color:var(--ink); font-weight:600;}
+
+  .bar{
+    display:flex; align-items:center; gap:11px; padding:16px 26px 20px;
+    border-top:1px solid var(--line); background:#fff;
+  }
+  .icon-btn{
+    width:42px; height:42px; flex:0 0 42px; border:none; border-radius:12px; cursor:pointer;
+    background:#F2F4F7; font-size:18px;
+    display:flex; align-items:center; justify-content:center; transition:.15s;
+  }
+  .icon-btn:hover{background:#E7EAEF;}
+  .bar input[type=text]{
+    flex:1; height:44px; padding:0 16px; font-size:14.5px;
+    border:1px solid var(--line); border-radius:13px; background:#FAFBFC; outline:none;
+  }
+  .bar input[type=text]:focus{border-color:var(--amber); background:#fff;}
+  .send{
+    width:44px; height:44px; flex:0 0 44px; border:none; border-radius:12px; cursor:pointer;
+    background:var(--amber); color:#fff; font-size:17px;
+    display:flex; align-items:center; justify-content:center; transition:.15s;
+  }
+  .send:hover{filter:brightness(.95);}
+  .send:disabled{opacity:.4; cursor:not-allowed;}
+
+  .toast{
+    position:fixed; top:28px; left:50%; transform:translateX(-50%);
+    background:rgba(31,35,41,.93); color:#fff; padding:11px 20px;
+    border-radius:11px; font-size:13px; opacity:0; pointer-events:none;
+    transition:.25s; z-index:99;
+  }
+  .toast.on{opacity:1;}
+
+  /* ===================== 发起群聊弹窗 ===================== */
+  .modal-mask{
+    position:fixed; inset:0; z-index:120; background:rgba(31,35,41,.42);
+    display:none; align-items:center; justify-content:center;
+  }
+  .modal-mask.on{display:flex;}
+  .modal{
+    width:392px; max-width:calc(100vw - 44px); background:#fff; border-radius:16px;
+    padding:22px 22px 18px; box-shadow:0 18px 50px rgba(31,35,41,.28);
+  }
+  .modal-title{font-size:16.5px; font-weight:600; margin-bottom:16px;}
+  .modal-sub{font-size:12px; color:var(--muted); font-weight:600; margin:16px 0 8px;}
+  .g-list{max-height:228px; overflow-y:auto;}
+  .g-item{
+    display:flex; align-items:center; gap:10px; padding:9px 10px;
+    border-radius:11px; cursor:pointer; transition:.15s;
+  }
+  .g-item:hover{background:#F4F6F9;}
+  .g-item.on{background:#FFFBEF;}
+  .g-item .avatar{width:32px; height:32px; flex:0 0 32px; font-size:15px;}
+  .g-txt{flex:1; min-width:0;}
+  .g-check{
+    width:19px; height:19px; flex:0 0 19px; border-radius:6px;
+    border:1.5px solid var(--line); display:flex; align-items:center;
+    justify-content:center; font-size:12px; color:#fff; transition:.15s;
+  }
+  .g-item.on .g-check{background:var(--amber); border-color:var(--amber);}
+  .modal-actions{display:flex; justify-content:flex-end; gap:9px; margin-top:20px;}
+</style>
+</head>
+<body>
+
+<!-- ===================== 登录 / 注册 ===================== -->
+<div class="view on" id="login-view">
+
+  <section class="login-hero">
+    <div class="hero-top">
+      <div class="hero-logo">💬</div>
+      <div class="hero-brand">Telegram Clone</div>
+    </div>
+    <h1 class="hero-title">IM 聊天<br>后端演示</h1>
+    <p class="hero-sub">FastAPI · WebSocket · Redis · DeepSeek · Chroma</p>
+    <ul class="hero-list">
+      <li><i>⚡</i> WebSocket 实时私聊 / 群聊（Redis Pub-Sub）</li>
+      <li><i>🛠</i> 工具调用：时间 / 天气 / 联网搜索 / 文档检索</li>
+      <li><i>📄</i> 上传 TXT·PDF，向量检索问答</li>
+    </ul>
+  </section>
+
+  <section class="login-pane">
+    <div class="login-form">
+      <h2 class="form-title" id="auth-title">欢迎回来</h2>
+      <p class="form-sub" id="auth-sub">登录后即可聊天</p>
+
+      <div class="field">
+        <label>手机号</label>
+        <input id="f-phone" type="text" placeholder="例如 13900000001" autocomplete="off">
+      </div>
+      <div class="field" id="row-username" style="display:none">
+        <label>用户名</label>
+        <input id="f-username" type="text" placeholder="至少 3 位" autocomplete="off">
+      </div>
+      <div class="field" id="row-display" style="display:none">
+        <label>昵称</label>
+        <input id="f-display" type="text" placeholder="聊天时显示的名字" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>密码</label>
+        <input id="f-password" type="password" placeholder="至少 6 位">
+      </div>
+
+      <button class="btn" id="auth-btn">登 录</button>
+      <div class="switch">
+        <span id="switch-text">还没有账号？</span>
+        <a id="switch-link">立即注册</a>
+      </div>
+
+      <div class="demo-tip">
+        <span>演示账号 <code>13900000001</code> / <code>demo123456</code></span>
+        <a id="fill-demo">一键填入</a>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ===================== 主界面 ===================== -->
+<div class="view" id="chat-view">
+
+  <aside class="sidebar">
+    <div class="side-head">
+      <div class="side-logo">💬</div>
+      <div>
+        <div class="side-title">Telegram Clone</div>
+        <div class="side-sub">IM + AI 应用演示</div>
+      </div>
+    </div>
+
+    <div class="side-search">
+      <input id="user-search" type="text" placeholder="搜索用户，开始私聊…" autocomplete="off">
+      <div class="search-results" id="search-results"></div>
+    </div>
+
+    <div class="side-friends">
+      <div class="conv" id="friends-entry">
+        <div class="avatar friends">👥</div>
+        <div class="conv-txt">
+          <div class="conv-name">新的朋友</div>
+          <div class="conv-last" id="friends-hint">好友申请 / 我的好友</div>
+        </div>
+        <div class="badge" id="req-badge" style="display:none">0</div>
+      </div>
+      <div class="conv" id="new-group-entry">
+        <div class="avatar">➕</div>
+        <div class="conv-txt">
+          <div class="conv-name">发起群聊</div>
+          <div class="conv-last">勾选好友，建一个新群</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-label">会话</div>
+    <div class="conv-list" id="conv-list"></div>
+
+    <div class="side-foot">
+      <div class="avatar" id="side-avatar">🙂</div>
+      <div class="conv-txt">
+        <div class="conv-name" id="side-name">—</div>
+        <div class="conv-last" id="side-phone">—</div>
+      </div>
+      <button id="logout-btn" title="退出登录">⏻</button>
+    </div>
+  </aside>
+
+  <main class="chat">
+    <header class="chat-head">
+      <div class="avatar" id="head-avatar">🤖</div>
+      <div class="head-txt">
+        <div class="head-name" id="head-name">AI 助手</div>
+        <div class="head-status">
+          <span class="dot" id="ws-dot"></span><span id="ws-text">连接中…</span>
+          <span id="head-extra"></span>
+        </div>
+      </div>
+      <div class="tabs" id="tabs-box">
+        <div class="tab on" data-mode="chat">对话</div>
+        <div class="tab" data-mode="doc">文档问答</div>
+      </div>
+    </header>
+
+    <div class="msgs" id="msgs"></div>
+
+    <div class="bar" id="bar">
+      <button class="icon-btn" id="attach-btn" title="上传 TXT / PDF 文档">📎</button>
+      <input type="file" id="file-input" accept=".txt,.pdf" style="display:none">
+      <input type="text" id="msg-input" placeholder="说点什么吧…">
+      <button class="send" id="send-btn" disabled>➤</button>
+    </div>
+  </main>
+
+</div>
+
+<!-- ===================== 发起群聊弹窗 ===================== -->
+<div class="modal-mask" id="group-modal">
+  <div class="modal">
+    <div class="modal-title">发起群聊</div>
+    <div class="field">
+      <label>群名称</label>
+      <input id="g-name" type="text" placeholder="例如 项目讨论组" autocomplete="off">
+    </div>
+    <div class="modal-sub">选择成员（已选 <span id="g-count">0</span> 人）</div>
+    <div class="g-list" id="g-list"></div>
+    <div class="modal-actions">
+      <button class="f-btn no" id="g-cancel">取消</button>
+      <button class="f-btn ok" id="g-create">创建</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===================== 配置 =====================
+const AI_BOT_ID = 'de99dfe6-697b-44a5-afde-4e19b50cb60c';   // app.db 里 username = ai_bot 的用户
+// 用 sessionStorage 而不是 localStorage：两个标签页各自独立，
+// 才能在一个窗口登 demo_a、另一个窗口登 demo_b 演示互相收发。
+const store = {
+  get token(){ return sessionStorage.getItem('tk'); },
+  set token(v){ v ? sessionStorage.setItem('tk', v) : sessionStorage.removeItem('tk'); },
+  get user(){ try { return JSON.parse(sessionStorage.getItem('usr')); } catch(e){ return null; } },
+  set user(v){ v ? sessionStorage.setItem('usr', JSON.stringify(v)) : sessionStorage.removeItem('usr'); },
+};
+
+let ws = null, mode = 'chat', reconnectLeft = 5, hbTimer = null;
+const convs = new Map();      // key -> {key,type,id,name,last,ts,unread}
+const aiStreams = new Map();  // stream_id -> {text,row,bubble}：AI 流式回复的增量缓冲
+let activeKey = null;
+// 好友：后端不会把好友/申请变化推过来，所以靠定时轮询刷新
+let friendView = false, friendsList = [], pendingReqs = [], friendsSig = '', friendTimer = null;
+
+// ===================== 小工具 =====================
+const $ = id => document.getElementById(id);
+const esc = t => String(t == null ? '' : t)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const keyOf = (type, id) => (type === 'group' ? 'g:' : 'u:') + id;
+const nowHM = () => new Date().toTimeString().slice(0, 5);
+
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove('on'), 2400);
+}
+function showView(id){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+  $(id).classList.add('on');
+}
+// 模型回复带 Markdown（**加粗**、`代码`、### 标题），气泡里要渲染出来，不能露出星号。
+// 先转义再替换，避免模型输出里的 HTML 被当成标签执行。
+function fmt(text){
+  return esc(text)
+    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+    .replace(/^#{1,6}\s*(.+)$/gm, '<b>$1</b>')
+    .replace(/`([^`]+)`/g, '<code style="background:#EFF1F4;padding:1px 5px;border-radius:5px;font-size:13px">$1</code>');
+}
+function myInitial(){
+  const u = store.user;
+  return u ? (u.display_name || u.username || '我').slice(0, 1) : '我';
+}
+async function api(path, opts){
+  opts = opts || {};
+  opts.headers = Object.assign({ 'Authorization': 'Bearer ' + store.token }, opts.headers || {});
+  const res = await fetch(path, opts);
+  const data = res.status === 204 ? null : await res.json().catch(() => null);
+  if (!res.ok) throw new Error((data && data.detail) || ('请求失败 ' + res.status));
+  return data;
+}
+
+// ===================== 消息渲染 =====================
+function addMsg(who, text, sources, senderLabel, showLabel, timeText){
+  const row = document.createElement('div');
+  row.className = 'row' + (who === 'me' ? ' me' : '');
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar';
+  if (who === 'me') avatar.textContent = myInitial();
+  else if (who === 'ai') avatar.textContent = '🤖';
+  else if (who === 'group') { avatar.className = 'avatar grp'; avatar.textContent = '👥'; }
+  else avatar.textContent = (senderLabel || '?').slice(0, 1);
+
+  const wrap = document.createElement('div');
+  wrap.className = 'bubble-wrap';
+  if (showLabel && senderLabel){
+    const w = document.createElement('div'); w.className = 'who'; w.textContent = senderLabel;
+    wrap.appendChild(w);
+  }
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble'; bubble.innerHTML = fmt(text);
+  const time = document.createElement('div');
+  time.className = 'time'; time.textContent = timeText || nowHM();
+  wrap.append(bubble, time);
+
+  row.append(avatar, wrap);
+  appendSources(row, sources);
+  const box = $('msgs'); box.appendChild(row);
+  box.scrollTop = box.scrollHeight;
+  return row;
+}
+// 引用来源单独抽出来：流式问答里气泡是先建好的，来源要等检索事件到了再补进去
+function appendSources(row, sources){
+  if (!sources || !sources.length) return;
+  const wrap = row.querySelector('.bubble-wrap');
+  if (!wrap) return;
+  const box = document.createElement('div');
+  box.className = 'srcs';
+  box.innerHTML = '<div class="src" style="margin-bottom:5px">📄 引用来源</div>' + sources.map(s =>
+    `<div class="src"><b>${esc(s.filename)}</b> · 距离 ${esc(s.distance)}</div>`
+  ).join('');
+  wrap.appendChild(box);
+}
+function addSys(text){
+  const d = document.createElement('div');
+  d.className = 'sys'; d.textContent = text;
+  const box = $('msgs'); box.appendChild(d); box.scrollTop = box.scrollHeight;
+}
+
+// ===================== 会话列表 =====================
+function upsertConv(o){
+  const k = keyOf(o.type, o.id);
+  let c = convs.get(k);
+  if (!c){ c = { key:k, type:o.type, id:o.id, name:'—', last:'', ts:0, unread:0 }; convs.set(k, c); }
+  if (o.name) c.name = o.name;
+  if (o.last != null) c.last = o.last;
+  if (o.ts) c.ts = o.ts;
+  if (o.unread != null) c.unread = o.unread;
+  return c;
+}
+function renderConvList(){
+  const box = $('conv-list'); box.innerHTML = '';
+  [...convs.values()].sort((a, b) => b.ts - a.ts).forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'conv' + (c.key === activeKey ? ' active' : '');
+    const av = document.createElement('div');
+    av.className = 'avatar' + (c.type === 'group' ? ' grp' : '');
+    av.textContent = c.type === 'group' ? '👥' : (c.id === AI_BOT_ID ? '🤖' : (c.name || '?').slice(0, 1));
+    const txt = document.createElement('div'); txt.className = 'conv-txt';
+    const nm = document.createElement('div'); nm.className = 'conv-name'; nm.textContent = c.name || '—';
+    const lt = document.createElement('div'); lt.className = 'conv-last';
+    lt.textContent = (c.last || '').replace(/[*`#]/g, '').slice(0, 26) || '暂无消息';
+    txt.append(nm, lt);
+    el.append(av, txt);
+    if (c.unread > 0){
+      const b = document.createElement('div'); b.className = 'badge';
+      b.textContent = c.unread > 99 ? '99+' : c.unread; el.appendChild(b);
+    }
+    el.onclick = () => openConv(c.key);
+    box.appendChild(el);
+  });
+}
+async function loadConversations(){
+  const list = await api('/api/conversations');
+  (list || []).forEach(c => {
+    const ts = Date.parse(c.last_message_time) || 0;
+    if (c.type === 'group'){
+      upsertConv({ type:'group', id:c.group_id, name:c.group_name, last:c.last_message, ts, unread:c.unread_count });
+    } else {
+      // 后端对同一会话会返回重复条目（ai_bot 出现两次），只保留时间较新的那条
+      const exist = convs.get(keyOf('private', c.user_id));
+      if (exist && exist.ts >= ts) return;
+      upsertConv({ type:'private', id:c.user_id, name:c.display_name || c.username, last:c.last_message, ts, unread:c.unread_count });
+    }
+  });
+  if (!convs.has(keyOf('private', AI_BOT_ID))){
+    upsertConv({ type:'private', id:AI_BOT_ID, name:'AI 助手', last:'', ts:0 });
+  }
+  renderConvList();
+}
+
+// ===================== 打开会话 =====================
+async function openConv(key){
+  const c = convs.get(key); if (!c) return;
+  friendView = false;
+  $('friends-entry').classList.remove('active');
+  $('bar').style.display = 'flex';
+  activeKey = key; c.unread = 0; mode = 'chat';
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.mode === 'chat'));
+  $('msg-input').placeholder = '说点什么吧…';
+
+  const isAI = c.type === 'private' && c.id === AI_BOT_ID;
+  $('tabs-box').style.display = isAI ? 'flex' : 'none';
+  $('attach-btn').style.display = isAI ? 'flex' : 'none';
+
+  const av = $('head-avatar');
+  av.className = 'avatar' + (c.type === 'group' ? ' grp' : '');
+  av.textContent = c.type === 'group' ? '👥' : (isAI ? '🤖' : (c.name || '?').slice(0, 1));
+  $('head-name').textContent = c.name || '—';
+  $('head-extra').textContent = c.type === 'group' ? ' · 群聊' : (isAI ? ' · 可直接调工具' : '');
+  renderConvList();
+  await loadHistory(c);
+}
+async function loadHistory(c){
+  const box = $('msgs'); box.innerHTML = '';
+  let msgs = [];
+  try {
+    msgs = c.type === 'group'
+      ? await api('/api/groups/' + c.id + '/messages')
+      : await api('/api/messages/' + c.id);
+  } catch (e){
+    addSys('历史加载失败：' + e.message);
+    return;
+  }
+  if (!msgs || !msgs.length){
+    addSys(c.type === 'group' ? '群里还没有消息，说句话试试' : '还没有聊天记录，打个招呼吧');
+    return;
+  }
+  msgs.forEach(m => {
+    const mine = m.sender_id === store.user.id;
+    const who = mine ? 'me' : (m.sender_id === AI_BOT_ID ? 'ai' : (c.type === 'group' ? 'group' : 'them'));
+    // 历史气泡用消息真实时间，不是打开页面的时间
+    const hm = (m.created_at || '').slice(11, 16);
+    addMsg(who, m.content, null, m.sender_display_name || m.sender_username, c.type === 'group' && !mine, hm);
+  });
+  box.scrollTop = box.scrollHeight;
+  if (c.type === 'private') api('/api/messages/read/' + c.id, { method:'POST' }).catch(() => {});
+}
+
+// ===================== 搜索用户 =====================
+let searchTimer = null;
+$('user-search').addEventListener('input', e => {
+  const q = e.target.value.trim();
+  clearTimeout(searchTimer);
+  const box = $('search-results');
+  if (!q){ box.classList.remove('on'); box.innerHTML = ''; return; }
+  searchTimer = setTimeout(() => doSearch(q), 250);
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('.side-search')) $('search-results').classList.remove('on');
+});
+async function doSearch(q){
+  const box = $('search-results');
+  try {
+    const users = await api('/api/users/search?q=' + encodeURIComponent(q));
+    const others = (users || []).filter(u => u.id !== store.user.id);
+    box.innerHTML = '';
+    if (!others.length){
+      box.innerHTML = '<div class="sr-item" style="color:#8A9099">没找到匹配的用户</div>';
+      box.classList.add('on'); return;
+    }
+    others.forEach(u => {
+      const el = document.createElement('div'); el.className = 'sr-item';
+      el.innerHTML = '<div class="avatar" style="width:30px;height:30px;flex:0 0 30px;font-size:14px">'
+        + esc((u.display_name || u.username || '?').slice(0, 1)) + '</div>'
+        + '<div style="flex:1;min-width:0"><div style="font-weight:600">' + esc(u.display_name || u.username) + '</div>'
+        + '<div style="font-size:11.5px;color:#8A9099">@' + esc(u.username) + '</div></div>';
+      // 已是好友就不再给"加好友"，改成一个提示；点整行都是发起私聊
+      const isFriend = friendsList.some(f => f.friend_id === u.id);
+      const btn = document.createElement('button');
+      btn.className = 'sr-add' + (isFriend ? ' done' : '');
+      btn.textContent = isFriend ? '已是好友' : '加好友';
+      btn.disabled = isFriend;
+      if (!isFriend) btn.onclick = ev => { ev.stopPropagation(); addFriend(u.username, btn); };
+      el.appendChild(btn);
+      el.onclick = () => {
+        box.classList.remove('on'); $('user-search').value = '';
+        const k = keyOf('private', u.id);
+        if (!convs.get(k)) upsertConv({ type:'private', id:u.id, name:u.display_name || u.username, last:'', ts:Date.now() });
+        openConv(k);
+      };
+      box.appendChild(el);
+    });
+    box.classList.add('on');
+  } catch (e){ toast(e.message); }
+}
+
+// ===================== 好友 =====================
+function renderReqBadge(){
+  const b = $('req-badge');
+  if (pendingReqs.length){
+    b.style.display = 'flex';
+    b.textContent = pendingReqs.length > 99 ? '99+' : pendingReqs.length;
+  } else b.style.display = 'none';
+  $('friends-hint').textContent = pendingReqs.length
+    ? pendingReqs.length + ' 个好友申请待处理'
+    : '我的好友 ' + friendsList.length;
+  // 只在"新的朋友"面板里同步标题栏计数；否则会把正在聊天的人的标题覆盖掉
+  if (friendView) $('head-extra').textContent = pendingReqs.length ? ' · ' + pendingReqs.length + ' 个待处理' : '';
+}
+async function loadFriends(){
+  try {
+    const [f, r] = await Promise.all([api('/api/friends'), api('/api/friends/requests')]);
+    friendsList = f || []; pendingReqs = r || [];
+    renderReqBadge();
+    // 只在数据真的变了才重绘，免得 15s 轮询把面板刷得闪
+    const sig = pendingReqs.map(x => x.id).join() + '|' + friendsList.map(x => x.id).join();
+    if (sig !== friendsSig){
+      friendsSig = sig;
+      if (friendView) renderFriends();
+    }
+  } catch (e){ /* 轮询失败不打扰用户 */ }
+}
+function friendRow(name, sub, initial, buttons){
+  const row = document.createElement('div'); row.className = 'f-row';
+  const av = document.createElement('div'); av.className = 'avatar'; av.textContent = initial;
+  const txt = document.createElement('div'); txt.className = 'f-txt';
+  const nm = document.createElement('div'); nm.className = 'f-name'; nm.textContent = name;
+  const sb = document.createElement('div'); sb.className = 'f-sub'; sb.textContent = sub;
+  txt.append(nm, sb);
+  row.append(av, txt, ...buttons);
+  return row;
+}
+function renderFriends(){
+  const box = $('msgs'); box.innerHTML = '';
+
+  const t1 = document.createElement('div'); t1.className = 'f-title'; t1.textContent = '待处理的好友申请';
+  box.appendChild(t1);
+  if (!pendingReqs.length){
+    addSys('没有待处理的申请');
+  } else {
+    pendingReqs.forEach(r => {
+      const name = r.requester_display_name || r.requester_username || '?';
+      const ok = document.createElement('button'); ok.className = 'f-btn ok'; ok.textContent = '接受';
+      // 注意：这里的 id 是 friends 表的"关系 id"，不是用户 id
+      ok.onclick = () => handleRequest(r.id, 'accept');
+      const no = document.createElement('button'); no.className = 'f-btn no'; no.textContent = '拒绝';
+      no.onclick = () => handleRequest(r.id, 'reject');
+      box.appendChild(friendRow(name, '@' + (r.requester_username || ''), name.slice(0, 1), [ok, no]));
+    });
+  }
+
+  const t2 = document.createElement('div'); t2.className = 'f-title';
+  t2.style.marginTop = '22px'; t2.textContent = '我的好友（' + friendsList.length + '）';
+  box.appendChild(t2);
+  if (!friendsList.length){
+    addSys('还没有好友，用上面的搜索框找人加好友');
+  } else {
+    friendsList.forEach(f => {
+      const name = f.display_name || f.username || '?';
+      const go = document.createElement('button'); go.className = 'f-btn ok'; go.textContent = '发消息';
+      go.onclick = () => {
+        const k = keyOf('private', f.friend_id);
+        if (!convs.get(k)) upsertConv({ type:'private', id:f.friend_id, name, last:'', ts:Date.now() });
+        openConv(k);
+      };
+      box.appendChild(friendRow(name, '@' + (f.username || ''), name.slice(0, 1), [go]));
+    });
+  }
+}
+async function openFriends(){
+  friendView = true; activeKey = null;
+  $('friends-entry').classList.add('active');
+  const av = $('head-avatar'); av.className = 'avatar friends'; av.textContent = '👥';
+  $('head-name').textContent = '新的朋友';
+  $('head-extra').textContent = pendingReqs.length ? ' · ' + pendingReqs.length + ' 个待处理' : '';
+  $('tabs-box').style.display = 'none';
+  $('attach-btn').style.display = 'none';
+  $('bar').style.display = 'none';
+  renderConvList();            // activeKey 已清空，会话高亮跟着去掉
+  renderFriends();             // 先用本地缓存画出来，再拉最新
+  await loadFriends();
+}
+async function handleRequest(relId, action){
+  try {
+    await api('/api/friends/requests/' + relId + '/' + action, { method:'POST' });
+    toast(action === 'accept' ? '已添加为好友' : '已拒绝该申请');
+    await loadFriends();
+    if (action === 'accept') await loadConversations();
+  } catch (e){ toast(e.message); }
+}
+async function addFriend(username, btn){
+  btn.disabled = true; btn.textContent = '发送中…';
+  try {
+    await api('/api/friends/requests', {
+      method:'POST', headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ username }),
+    });
+    btn.className = 'sr-add done'; btn.textContent = '已申请';
+    toast('好友申请已发送，等对方接受');
+  } catch (e){
+    toast(e.message);
+    btn.disabled = false; btn.textContent = '加好友';
+  }
+}
+$('friends-entry').onclick = openFriends;
+
+// ===================== 发起群聊 =====================
+// 选中项存 friend_id（好友列表里这个字段不叫 id，别写错）
+const pickedMembers = new Set();
+
+function openGroupModal(){
+  pickedMembers.clear();
+  $('g-name').value = '';
+  renderGroupPicker();
+  $('group-modal').classList.add('on');
+  setTimeout(() => $('g-name').focus(), 30);
+}
+function closeGroupModal(){
+  $('group-modal').classList.remove('on');
+}
+function renderGroupPicker(){
+  const box = $('g-list'); box.innerHTML = '';
+  if (!friendsList.length){
+    box.innerHTML = '<div style="padding:12px 10px;font-size:13px;color:#8A9099">'
+      + '还没有好友，先去「新的朋友」加人</div>';
+    $('g-count').textContent = '0';
+    return;
+  }
+  friendsList.forEach(f => {
+    const name = f.display_name || f.username || '?';
+    const el = document.createElement('div');
+    el.className = 'g-item' + (pickedMembers.has(f.friend_id) ? ' on' : '');
+    el.innerHTML = '<div class="avatar">' + esc(name.slice(0, 1)) + '</div>'
+      + '<div class="g-txt"><div class="f-name">' + esc(name) + '</div>'
+      + '<div class="f-sub">@' + esc(f.username || '') + '</div></div>'
+      + '<div class="g-check">✓</div>';
+    el.onclick = () => {
+      if (pickedMembers.has(f.friend_id)) pickedMembers.delete(f.friend_id);
+      else pickedMembers.add(f.friend_id);
+      el.classList.toggle('on');
+      $('g-count').textContent = pickedMembers.size;
+    };
+    box.appendChild(el);
+  });
+  $('g-count').textContent = pickedMembers.size;
+}
+async function createGroup(){
+  const name = $('g-name').value.trim();
+  if (!name) return toast('给群起个名字');
+  if (!pickedMembers.size) return toast('至少要选一个成员');
+
+  const btn = $('g-create'); btn.disabled = true;
+  try {
+    // 后端 create_group 会自动把创建者加成 owner，member_ids 只传其他人
+    const g = await api('/api/groups', {
+      method:'POST', headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ name, description:null, member_ids:[...pickedMembers] }),
+    });
+    closeGroupModal();
+    // 建群没有 WS 推送，本地先塞进会话列表，随后再拉一次用后端的 group_name 校准
+    upsertConv({ type:'group', id:g.id, name:g.name, last:'', ts:Date.now() });
+    toast('群「' + g.name + '」已创建');
+    openConv(keyOf('group', g.id));
+    loadConversations().catch(() => {});
+  } catch (e){
+    toast(e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+$('new-group-entry').onclick = openGroupModal;
+$('g-cancel').onclick = closeGroupModal;
+$('g-create').onclick = createGroup;
+$('g-name').addEventListener('keydown', e => { if (e.key === 'Enter') createGroup(); });
+// 点遮罩空白处关闭；点弹窗内部不会冒泡到判断成立
+$('group-modal').onclick = e => { if (e.target === $('group-modal')) closeGroupModal(); };
+
+// ===================== 登录 / 注册 =====================
+let isRegister = false;
+$('switch-link').onclick = () => {
+  isRegister = !isRegister;
+  $('auth-title').textContent = isRegister ? '创建账号' : '欢迎回来';
+  $('auth-sub').textContent = isRegister ? '注册后自动登录' : '登录后即可聊天';
+  $('auth-btn').textContent = isRegister ? '注 册' : '登 录';
+  $('switch-text').textContent = isRegister ? '已经有账号了？' : '还没有账号？';
+  $('switch-link').textContent = isRegister ? '返回登录' : '立即注册';
+  ['row-username','row-display'].forEach(id => $(id).style.display = isRegister ? 'block' : 'none');
+};
+$('fill-demo').onclick = () => {
+  isRegister = false;
+  $('f-phone').value = '13900000001';
+  $('f-password').value = 'demo123456';
+  toast('已填入演示账号，点「登录」即可');
+};
+$('auth-btn').onclick = async () => {
+  const phone = $('f-phone').value.trim();
+  const password = $('f-password').value;
+  if (!phone || !password) return toast('手机号和密码都要填');
+
+  const url = isRegister ? '/api/auth/register' : '/api/auth/login';
+  const body = isRegister
+    ? { phone, password, username: $('f-username').value.trim(), display_name: $('f-display').value.trim() }
+    : { phone, password };
+
+  const btn = $('auth-btn'); btn.disabled = true;
+  try {
+    const data = await api(url, {
+      method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body)
+    });
+    store.token = data.access_token; store.user = data.user;
+    enterChat();
+  } catch (e){
+    toast(e.message);
+  } finally {
+    btn.disabled = false;
+  }
+};
+
+// ===================== WebSocket =====================
+function connectWS(){
+  if (!store.token) return;
+  const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
+  ws = new WebSocket(proto + location.host + '/ws?token=' + encodeURIComponent(store.token));
+
+  ws.onopen = () => {
+    reconnectLeft = 5;
+    $('ws-dot').classList.add('on'); $('ws-text').textContent = '在线';
+    // 服务端的 user:online:{id} 只有 300s TTL，靠 ping 续期。
+    // 不发心跳的话，5 分钟后对方就被判定离线，私聊会静默进离线桶、群聊谁都收不到。
+    clearInterval(hbTimer);
+    hbTimer = setInterval(() => {
+      if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type:'ping' }));
+    }, 60000);
+  };
+  ws.onmessage = ev => {
+    const data = JSON.parse(ev.data);
+
+    // —— AI 流式回复：增量按 stream_id 拼进同一个气泡
+    if (data.type === 'ai_stream'){
+      const p = data.payload;
+      let st = aiStreams.get(p.stream_id);
+      if (!st){ st = { text:'', row:null, bubble:null }; aiStreams.set(p.stream_id, st); }
+      st.text += p.delta || '';
+      // 只在"正开在这个会话"时才画气泡。中途切走再切回，下一次增量会把累积文本整段补上；
+      // 若气泡所挂的 DOM 已被 loadHistory 清掉（isConnected 为 false），就重建一个。
+      if (keyOf('private', p.sender_id) === activeKey && mode === 'chat'){
+        if (!st.row || !st.row.isConnected){
+          st.row = addMsg('ai', '');
+          st.bubble = st.row.querySelector('.bubble');
+        }
+        st.bubble.textContent = st.text;   // 流式期间先按纯文本渲染，避免半截 markdown 乱蹦
+        const box = $('msgs'); box.scrollTop = box.scrollHeight;
+      }
+      return;
+    }
+
+    // —— AI 回复收尾：用最终文本覆盖，并落进会话列表
+    if (data.type === 'ai_done'){
+      const p = data.payload;
+      const k = keyOf('private', p.sender_id);
+      const st = aiStreams.get(p.stream_id);
+      aiStreams.delete(p.stream_id);
+      const c = convs.get(k) || upsertConv({ type:'private', id:p.sender_id, name:'AI 助手', last:'', ts:0 });
+      const hm = (p.created_at || '').slice(11, 16) || nowHM();
+
+      if (st && st.row && st.row.isConnected){
+        st.bubble.innerHTML = fmt(p.content);        // 定稿时才套 markdown 格式
+        const t = st.row.querySelector('.time'); if (t) t.textContent = hm;
+      } else if (k === activeKey && mode === 'chat'){
+        addMsg('ai', p.content, null, null, false, hm);
+      } else {
+        c.unread = (c.unread || 0) + 1;              // 不在这个会话里，记未读
+      }
+      c.last = p.content; c.ts = Date.now();
+      renderConvList();
+      return;
+    }
+
+    if (data.type !== 'new_message') return;   // message_ack / pong 都不用管
+    const p = data.payload;
+    if (p.sender_id === store.user.id) return;  // 自己的消息本地已乐观渲染
+
+    const isGroup = !!p.group_id;
+    const k = isGroup ? keyOf('group', p.group_id) : keyOf('private', p.sender_id);
+    const c = convs.get(k) || upsertConv({
+      type: isGroup ? 'group' : 'private',
+      id: isGroup ? p.group_id : p.sender_id,
+      name: p.sender_display_name || p.sender_username,
+      last: p.content, ts: Date.now(),
+    });
+    c.last = p.content; c.ts = Date.now();
+
+    if (k === activeKey && mode === 'chat'){
+      const who = p.sender_id === AI_BOT_ID ? 'ai' : (isGroup ? 'group' : 'them');
+      addMsg(who, p.content, null, p.sender_display_name || p.sender_username, isGroup);
+    } else {
+      c.unread = (c.unread || 0) + 1;
+    }
+    renderConvList();
+  };
+  ws.onclose = () => {
+    clearInterval(hbTimer);
+    $('ws-dot').classList.remove('on'); $('ws-text').textContent = '已断开';
+    if (reconnectLeft-- > 0){
+      $('ws-text').textContent = '重连中…';
+      setTimeout(connectWS, 1500);
+    }
+  };
+}
+function closeWS(){
+  clearInterval(hbTimer);
+  if (ws){ reconnectLeft = 0; ws.close(); ws = null; }
+}
+
+// ===================== 发送 =====================
+$('msg-input').addEventListener('input', e => {
+  $('send-btn').disabled = !e.target.value.trim();
+});
+$('msg-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !$('send-btn').disabled) send();
+});
+$('send-btn').onclick = send;
+
+async function send(){
+  const text = $('msg-input').value.trim();
+  if (!text) return;
+  const c = convs.get(activeKey);
+  if (!c) return toast(friendView ? '好友面板里不能发消息' : '先在左侧选一个会话');
+  $('msg-input').value = ''; $('send-btn').disabled = true;
+
+  // —— 文档问答：走 REST 流式（NDJSON，一行一个事件），只对 AI 助手可见
+  if (mode === 'doc'){
+    addMsg('me', text);
+    const think = addMsg('ai', '正在检索文档…');
+    const box = $('msgs');
+    let row = null, bubble = null, answer = '', sourcesPending = null;
+    try {
+      const res = await fetch('/api/ai/rag-query', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + store.token },
+        body: JSON.stringify({ query: text, top_k: 5 }),
+      });
+      if (!res.ok){
+        const d = await res.json().catch(() => null);
+        throw new Error((d && d.detail) || ('请求失败 ' + res.status));
+      }
+
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let buf = '';
+      const ensureRow = () => {
+        if (row) return;
+        think.remove();
+        row = addMsg('ai', '');
+        bubble = row.querySelector('.bubble');
+        appendSources(row, sourcesPending);   // 来源事件先到，气泡后建，这里补上
+      };
+      while (true){
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop();                    // 末尾可能是半行，留到下一轮再拼
+        for (const line of lines){
+          if (!line.trim()) continue;
+          const ev = JSON.parse(line);
+          if (ev.type === 'sources'){ sourcesPending = ev.sources; continue; }
+          if (ev.type === 'delta'){
+            ensureRow();
+            answer += ev.text;
+            bubble.textContent = answer;       // 流式期间先纯文本，避免半截 markdown 乱蹦
+            box.scrollTop = box.scrollHeight;
+          }
+        }
+      }
+      ensureRow();
+      bubble.innerHTML = fmt(answer);          // 定稿才套格式
+      box.scrollTop = box.scrollHeight;
+    } catch (e){
+      think.remove(); toast(e.message);
+    }
+    return;
+  }
+
+  // —— 私聊 / 群聊：走 WebSocket，服务端只推给对端，所以本地先乐观渲染
+  if (!ws || ws.readyState !== WebSocket.OPEN) return toast('连接未就绪，稍等重连');
+  addMsg('me', text);
+  ws.send(JSON.stringify({
+    type:'message',
+    msg_id: crypto.randomUUID(),
+    payload: c.type === 'group' ? { group_id:c.id, content:text } : { receiver_id:c.id, content:text },
+  }));
+  c.last = text; c.ts = Date.now(); renderConvList();
+}
+
+// ===================== 模式切换 =====================
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+    tab.classList.add('on');
+    mode = tab.dataset.mode;
+    $('msg-input').placeholder = mode === 'doc' ? '就上传的文档提问…' : '说点什么吧…';
+    addSys(mode === 'doc' ? '已切到文档问答，先点 📎 上传 TXT / PDF' : '已切回普通对话');
+  };
+});
+
+// ===================== 上传文档 =====================
+$('attach-btn').onclick = () => $('file-input').click();
+$('file-input').onchange = async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const form = new FormData(); form.append('file', file);
+  addSys('正在上传 ' + file.name + '…');
+  try {
+    const data = await api('/api/ai/documents', { method:'POST', body: form });
+    addSys(`✅ ${data.filename} 已入库（切分 ${data.chunk_count} 个片段），切到「文档问答」提问`);
+  } catch (err){
+    toast(err.message);
+  } finally {
+    e.target.value = '';
+  }
+};
+
+// ===================== 退出登录 =====================
+$('logout-btn').onclick = () => {
+  closeWS();
+  clearInterval(friendTimer);
+  closeGroupModal();
+  store.token = null; store.user = null;
+  convs.clear(); aiStreams.clear(); activeKey = null; mode = 'chat';
+  friendView = false; friendsList = []; pendingReqs = []; friendsSig = '';
+  $('msgs').innerHTML = ''; $('conv-list').innerHTML = '';
+  showView('login-view');
+};
+
+// ===================== 入口 =====================
+function enterChat(){
+  const u = store.user;
+  $('side-name').textContent = u.display_name || u.username;
+  $('side-phone').textContent = u.phone;
+  $('side-avatar').textContent = (u.display_name || u.username || '?').slice(0, 1);
+  showView('chat-view');
+  connectWS();
+  loadFriends();
+  // 好友申请没有 WS 推送，靠轮询才能让另一个窗口"主动"冒出角标
+  clearInterval(friendTimer);
+  friendTimer = setInterval(loadFriends, 15000);
+  loadConversations()
+    .then(() => openConv(keyOf('private', AI_BOT_ID)))
+    .catch(e => addSys('会话列表加载失败：' + e.message));
+}
+if (store.token && store.user) enterChat();
+</script>
+</body>
+</html>
